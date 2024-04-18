@@ -53,8 +53,14 @@ check_and_run_service() {
   fi
 }
 
-# Setup Pi-hole
-check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD:'set_your_password_here'" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
+# Setup Ubuntu with SSH and Python
+check_and_run_service "ubuntu-ssh-python" "ubuntu-ssh-python" "ubuntu:latest" "2222:22" "" ""
+docker exec ubuntu-ssh-python apt-get update
+docker exec ubuntu-ssh-python apt-get install -y openssh-server python3 python3-pip
+docker exec ubuntu-ssh-python service ssh start
+
+# Setup Pi-hole with no password
+check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
 
 # Setup OpenVPN with WebUI
 check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
@@ -73,3 +79,22 @@ check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xt
 
 # Setup Home Assistant
 check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
+
+# Setup Freqtrade
+check_and_run_service "freqtrade" "freqtrade" "freqtrade/freqtrade:stable" "" "FT_CONFIGFILE:'/freqtrade/config.json';FT_STRATEGY:'SampleStrategy'" "./freqtrade-config:/freqtrade"
+
+# Setup Ubuntu Desktop with kasmweb/desktop as web-desktop
+check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901" "" ""
+
+# Create Samba share directory
+SHARE_DIR="/home/pi/share"
+mkdir -p ${SHARE_DIR}
+
+# Setup Samba Network Share with secure credentials
+USERNAME="pi"
+PASSWORD="strong_password_here!"  # Change this to a strong, unique password.
+USER_ID="1000"
+GROUP_ID="1000"
+SHARE_NAME="share"
+
+check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
