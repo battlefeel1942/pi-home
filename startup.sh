@@ -43,18 +43,33 @@ EOF
   fi
 }
 
-# Setup Pi-hole if not already setup
-if ! docker ps | grep -q pihole; then
-  add_service_to_docker_compose "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD:'set_your_password_here'" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
-  cd ~/docker-services
-  docker-compose up -d
-  sudo systemctl reboot
-fi
+# Start services if not running
+check_and_run_service() {
+  if ! docker ps | grep -q $1; then
+    add_service_to_docker_compose "$@"
+    cd ~/docker-services
+    docker-compose up -d
+    sudo systemctl reboot
+  fi
+}
 
-# Setup OpenVPN if not already setup
-if ! docker ps | grep -q openvpn; then
-  add_service_to_docker_compose "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp" "" "./openvpn-data/conf:/etc/openvpn"
-  cd ~/docker-services
-  docker-compose up -d
-  sudo systemctl reboot
-fi
+# Setup Pi-hole
+check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD:'set_your_password_here'" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
+
+# Setup OpenVPN with WebUI
+check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
+
+# Setup Plex
+check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
+
+# Setup Mumble
+check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
+
+# Setup Deluge with WebUI
+check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
+
+# Setup xTeVe
+check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
+
+# Setup Home Assistant
+check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
