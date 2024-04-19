@@ -23,27 +23,27 @@ This Bash script automates the setup and maintenance of various services on a Li
 
 Clone the repository or download the script directly to your local system using:
 
-\`\`\`bash
+
 wget https://raw.githubusercontent.com/yourusername/yourrepository/main/startup.sh
 # Or use curl
 curl -o startup.sh https://raw.githubusercontent.com/yourusername/yourrepository/main/startup.sh
-\`\`\`
+
 
 ### 2. Make the Script Executable
 
 Before running the script, change its permissions to make it executable:
 
-\`\`\`bash
+
 chmod +x startup.sh
-\`\`\`
+
 
 ### 3. Run the Script
 
 Execute the script with administrative privileges to perform all setup tasks:
 
-\`\`\`bash
+
 sudo ./startup.sh
-\`\`\`
+
 
 ## Configuration
 
