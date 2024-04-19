@@ -8,7 +8,7 @@ SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
 # Function to check and prompt for credentials
-function check_and_prompt_for_credential() {
+check_and_prompt_for_credential() {
     local credential_file=$1
     local credential_name=$2
     local var_name=$3
