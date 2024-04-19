@@ -67,7 +67,7 @@ if ! [ -x "$(command -v docker)" ]; then
 version: '3'
 services:
 EOF
-  sudo systemctl reboot
+  # sudo systemctl reboot
 fi
 
 # Check if Docker Compose is installed, if not install it
@@ -103,7 +103,7 @@ check_and_run_service() {
         cd ~/docker-services
         docker-compose up -d
         send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted"
-        sudo systemctl reboot
+        # sudo systemctl reboot
     fi
 }
 
