@@ -24,9 +24,9 @@ This Bash script automates the setup and maintenance of various services on a Li
 Clone the repository or download the script directly to your local system using:
 
 
-wget https://raw.githubusercontent.com/yourusername/yourrepository/main/startup.sh
+wget https://raw.githubusercontent.com/battlefeel1942/pi-home/main/startup.sh
 # Or use curl
-curl -o startup.sh https://raw.githubusercontent.com/yourusername/yourrepository/main/startup.sh
+curl -o startup.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/startup.sh
 
 
 ### 2. Make the Script Executable

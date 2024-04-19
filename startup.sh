@@ -11,7 +11,7 @@ SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 if [ -f "$PUSHBULLET_TOKEN_FILE" ]; then
     PUSHBULLET_TOKEN=$(cat "$PUSHBULLET_TOKEN_FILE")
 else
-    read -sp "Enter your Pushbullet access token: " PUSHBULLET_TOKEN
+    read -p "Enter your Pushbullet access token: " PUSHBULLET_TOKEN
     echo
     echo "$PUSHBULLET_TOKEN" > "$PUSHBULLET_TOKEN_FILE"
     chmod 600 "$PUSHBULLET_TOKEN_FILE"
@@ -40,7 +40,7 @@ fi
 if [ -f "$SAMBA_PASS_FILE" ]; then
     PASSWORD=$(cat "$SAMBA_PASS_FILE")
 else
-    read -sp "Enter your Samba password: " PASSWORD
+    read -p "Enter your Samba password: " PASSWORD
     echo
     echo "$PASSWORD" > "$SAMBA_PASS_FILE"
     chmod 600 "$SAMBA_PASS_FILE"
