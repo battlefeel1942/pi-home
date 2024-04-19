@@ -1,18 +1,54 @@
 #!/bin/bash
 
-# Pushbullet access token
-PUSHBULLET_TOKEN="your_pushbullet_access_token_here"
+# Define directories and file paths for secure storage
+CONFIG_DIR="$HOME/.config/credentials"
+mkdir -p "$CONFIG_DIR"
+TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
+SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
+SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
+
+# Check if the Pushbullet token file exists and read from it, if not, prompt for it and save
+if [ -f "$TOKEN_FILE" ]; then
+    PUSHBULLET_TOKEN=$(cat "$TOKEN_FILE")
+else
+    read -sp "Enter your Pushbullet access token: " PUSHBULLET_TOKEN
+    echo
+    echo "$PUSHBULLET_TOKEN" > "$TOKEN_FILE"
+    chmod 600 "$TOKEN_FILE"
+fi
 
 # Function to send notification via Pushbullet
 send_pushbullet_notification() {
     local title="$1"
     local message="$2"
-    local token="$3"  # Your Pushbullet Access Token
+    local token="$PUSHBULLET_TOKEN"
 
     curl -u "$token:" -X POST https://api.pushbullet.com/v2/pushes \
         --header 'Content-Type: application/json' \
         --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
 }
+
+# Check and prompt for Samba username and password
+if [ -f "$SAMBA_USER_FILE" ]; then
+    USERNAME=$(cat "$SAMBA_USER_FILE")
+else
+    read -p "Enter your Samba username: " USERNAME
+    echo "$USERNAME" > "$SAMBA_USER_FILE"
+    chmod 600 "$SAMBA_USER_FILE"
+fi
+
+if [ -f "$SAMBA_PASS_FILE" ]; then
+    PASSWORD=$(cat "$SAMBA_PASS_FILE")
+else
+    read -sp "Enter your Samba password: " PASSWORD
+    echo
+    echo "$PASSWORD" > "$SAMBA_PASS_FILE"
+    chmod 600 "$SAMBA_PASS_FILE"
+fi
+
+USER_ID="1000"
+GROUP_ID="1000"
+SHARE_NAME="share"
 
 # Add script to crontab to run at reboot and daily at 4 AM
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -60,7 +96,6 @@ add_service_to_docker_compose() {
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
-
 EOF
   fi
 }
@@ -71,11 +106,15 @@ check_and_run_service() {
         add_service_to_docker_compose "$@"
         cd ~/docker-services
         docker-compose up -d
-        send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted" "$PUSHBULLET_TOKEN"
+        send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted"
         sudo systemctl reboot
     fi
 }
 
+# Setup Samba Network Share with secure credentials
+SHARE_DIR="/home/pi/share"
+mkdir -p ${SHARE_DIR}
+check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
 # Setup Pi-hole with no password
 check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
@@ -103,16 +142,3 @@ check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assist
 
 # Setup Ubuntu Desktop with kasmweb/desktop as web-desktop
 check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901" "" ""
-
-# Create Samba share directory
-SHARE_DIR="/home/pi/share"
-mkdir -p ${SHARE_DIR}
-
-# Setup Samba Network Share with secure credentials
-USERNAME="pi"
-PASSWORD="strong_password_here!"  # Change this to a strong, unique password.
-USER_ID="1000"
-GROUP_ID="1000"
-SHARE_NAME="share"
-
-check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
