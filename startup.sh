@@ -51,18 +51,17 @@ sudo systemctl start ssh
 
 # Check if Docker is installed and install if it isn't
 if ! command -v docker > /dev/null; then
-  curl -fsSL https://get.docker.com -o get-docker.sh
-  sudo sh get-docker.sh
+  curl -fsSL https://get.docker.com | sudo sh
   mkdir -p ~/docker-services
   touch ~/docker-services/docker-compose.yml
   echo "version: '3'" > ~/docker-services/docker-compose.yml
   echo "services:" >> ~/docker-services/docker-compose.yml
 fi
 
-# Check if Docker Compose is installed, if not install it
+# Install Docker Compose via pip to ensure compatibility with ARM architecture
 if ! command -v docker-compose > /dev/null; then
-  sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
+  sudo apt-get install -y python3-pip libffi-dev libssl-dev
+  sudo pip3 install docker-compose
 fi
 
 # Function to update docker-compose.yml with a new service
@@ -101,8 +100,6 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     mkdir -p "$SHARE_DIR"
     chmod 777 "$SHARE_DIR"
 fi
-
-
 
 check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
