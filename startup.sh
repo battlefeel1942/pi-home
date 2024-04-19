@@ -3,18 +3,18 @@
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
 mkdir -p "$CONFIG_DIR"
-TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
+PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
 # Check if the Pushbullet token file exists and read from it, if not, prompt for it and save
-if [ -f "$TOKEN_FILE" ]; then
-    PUSHBULLET_TOKEN=$(cat "$TOKEN_FILE")
+if [ -f "$PUSHBULLET_TOKEN_FILE" ]; then
+    PUSHBULLET_TOKEN=$(cat "$PUSHBULLET_TOKEN_FILE")
 else
     read -sp "Enter your Pushbullet access token: " PUSHBULLET_TOKEN
     echo
-    echo "$PUSHBULLET_TOKEN" > "$TOKEN_FILE"
-    chmod 600 "$TOKEN_FILE"
+    echo "$PUSHBULLET_TOKEN" > "$PUSHBULLET_TOKEN_FILE"
+    chmod 600 "$PUSHBULLET_TOKEN_FILE"
 fi
 
 # Function to send notification via Pushbullet
@@ -45,10 +45,6 @@ else
     echo "$PASSWORD" > "$SAMBA_PASS_FILE"
     chmod 600 "$SAMBA_PASS_FILE"
 fi
-
-USER_ID="1000"
-GROUP_ID="1000"
-SHARE_NAME="share"
 
 # Add script to crontab to run at reboot and daily at 4 AM
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
@@ -112,8 +108,26 @@ check_and_run_service() {
 }
 
 # Setup Samba Network Share with secure credentials
-SHARE_DIR="/home/pi/share"
-mkdir -p ${SHARE_DIR}
+USER_ID="1000"
+GROUP_ID="1000"
+SHARE_NAME="share"
+
+# Define the share directory
+SHARE_DIR="$HOME/share"
+
+# Check if the directory exists
+if [ ! -d "$SHARE_DIR" ]; then
+    # If it doesn't exist, create it and set permissions
+    mkdir -p "$SHARE_DIR"
+    chmod 777 "$SHARE_DIR"
+else
+    # If it exists, check the current permissions
+    current_perms=$(stat -c "%a" "$SHARE_DIR")
+    if [ "$current_perms" != "777" ]; then
+        # If permissions are not 777, change them
+        chmod 777 "$SHARE_DIR"
+    fi
+fi
 check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
 # Setup Pi-hole with no password
@@ -123,22 +137,19 @@ check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/
 check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
 
 # Setup Plex
-#check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
+check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
 
 # Setup Mumble
-#check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
+check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
 
 # Setup Deluge with WebUI
-#check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
+check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
 
 # Setup xTeVe
-# check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
+check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
 
 # Setup Home Assistant
 check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
-
-# Setup Freqtrade
-# check_and_run_service "freqtrade" "freqtrade" "freqtrade/freqtrade:stable" "" "FT_CONFIGFILE:'/freqtrade/config.json';FT_STRATEGY:'SampleStrategy'" "./freqtrade-config:/freqtrade"
 
 # Setup Ubuntu Desktop with kasmweb/desktop as web-desktop
 check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901" "" ""
