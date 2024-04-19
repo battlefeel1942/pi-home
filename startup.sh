@@ -1,7 +1,15 @@
 #!/bin/bash
 
+# Add script to crontab to run at reboot and daily at 4 AM
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+(crontab -l 2>/dev/null; echo "@reboot $SCRIPT_PATH"; echo "0 4 * * * $SCRIPT_PATH") | crontab -
+
 # Update and upgrade the system
 sudo apt-get update && sudo apt-get upgrade -y
+
+# Ensure SSH is enabled and started
+sudo systemctl enable ssh
+sudo systemctl start ssh
 
 # Check if Docker is installed and install if it isn't
 if ! [ -x "$(command -v docker)" ]; then
@@ -60,13 +68,13 @@ check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/
 check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
 
 # Setup Plex
-check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
+#check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
 
 # Setup Mumble
-check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
+#check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
 
 # Setup Deluge with WebUI
-check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
+#check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
 
 # Setup xTeVe
 # check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
