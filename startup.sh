@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# Pushbullet access token
+PUSHBULLET_TOKEN="your_pushbullet_access_token_here"
+
+# Function to send notification via Pushbullet
+send_pushbullet_notification() {
+    local title="$1"
+    local message="$2"
+    local token="$3"  # Your Pushbullet Access Token
+
+    curl -u "$token:" -X POST https://api.pushbullet.com/v2/pushes \
+        --header 'Content-Type: application/json' \
+        --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
+}
+
 # Add script to crontab to run at reboot and daily at 4 AM
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 (crontab -l 2>/dev/null; echo "@reboot $SCRIPT_PATH"; echo "0 4 * * * $SCRIPT_PATH") | crontab -
@@ -51,15 +65,17 @@ EOF
   fi
 }
 
-# Start services if not running
+# Enhanced function to check and run services and send notifications
 check_and_run_service() {
-  if ! docker ps | grep -q $1; then
-    add_service_to_docker_compose "$@"
-    cd ~/docker-services
-    docker-compose up -d
-    sudo systemctl reboot
-  fi
+    if ! docker ps | grep -q $1; then
+        add_service_to_docker_compose "$@"
+        cd ~/docker-services
+        docker-compose up -d
+        send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted" "$PUSHBULLET_TOKEN"
+        sudo systemctl reboot
+    fi
 }
+
 
 # Setup Pi-hole with no password
 check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
