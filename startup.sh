@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Create and activate a Python virtual environment
+VENV_DIR="$HOME/dkr"
+if [ ! -d "$VENV_DIR" ]; then
+  python3 -m venv "$VENV_DIR"
+fi
+source "$VENV_DIR/bin/activate"
+
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
 mkdir -p "$CONFIG_DIR"
@@ -58,10 +65,11 @@ if ! command -v docker > /dev/null; then
   echo "services:" >> ~/docker-services/docker-compose.yml
 fi
 
-# Install Docker Compose via pip to ensure compatibility with ARM architecture
+
+
+# Install Docker Compose within the virtual environment
 if ! command -v docker-compose > /dev/null; then
-  sudo apt-get install -y python3-pip libffi-dev libssl-dev
-  sudo pip3 install docker-compose
+  pip3 install docker-compose
 fi
 
 # Function to update docker-compose.yml with a new service
@@ -116,7 +124,7 @@ check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" ".
 check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
 
 # Setup Deluge with WebUI
-check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
+check_and_run service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
 
 # Setup xTeVe
 check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
@@ -125,4 +133,8 @@ check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xt
 check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
 
 # Setup Ubuntu Desktop with kasmweb/desktop as web-desktop
-check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901" "" ""
+check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901/tcp" "" ""
+
+
+# Deactivate the virtual environment
+deactivate
