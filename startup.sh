@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Create and activate a Python virtual environment
-VENV_DIR="$HOME/dkr"
-if [ ! -d "$VENV_DIR" ]; then
-  python3 -m venv "$VENV_DIR"
-fi
-source "$VENV_DIR/bin/activate"
-
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
 mkdir -p "$CONFIG_DIR"
@@ -45,23 +38,21 @@ send_pushbullet_notification() {
          --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
 }
 
-# Add script to crontab to run at reboot and daily at 4 AM
-SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-(crontab -l 2>/dev/null; echo "@reboot $SCRIPT_PATH"; echo "0 4 * * * $SCRIPT_PATH") | crontab -
+# Set up the repository for Docker
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Check if Docker is installed and install if it isn't
-if ! command -v docker > /dev/null; then
-  curl -fsSL https://get.docker.com | sudo sh
-  mkdir -p ~/docker-services
-  touch ~/docker-services/docker-compose.yml
-  echo "version: '3'" > ~/docker-services/docker-compose.yml
-  echo "services:" >> ~/docker-services/docker-compose.yml
-fi
+# Install Docker Engine
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Install Docker Compose within the virtual environment
-if ! command -v docker-compose > /dev/null; then
-  pip3 install docker-compose
-fi
+# Verify Docker Installation
+sudo docker run hello-world
+
+
 
 # Function to update docker-compose.yml with a new service
 add_service_to_docker_compose() {
@@ -93,6 +84,10 @@ check_and_run_service() {
     fi
 }
 
+# Add script to crontab to run at reboot and daily at 4 AM
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+(crontab -l 2>/dev/null; echo "@reboot $SCRIPT_PATH"; echo "0 4 * * * $SCRIPT_PATH") | crontab -
+
 # Define and check the share directory permissions
 SHARE_DIR="$HOME/share"
 if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
@@ -100,7 +95,7 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     chmod 777 "$SHARE_DIR"
 fi
 
-# Service setups
+# Add services setups
 check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
 check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
@@ -111,5 +106,5 @@ check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xt
 check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
 check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901/tcp" "" ""
 
-# Deactivate the virtual environment
-deactivate
+# Deactivate commands and cleanup
+echo "All services are checked and notifications are sent."
