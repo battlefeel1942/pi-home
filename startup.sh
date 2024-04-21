@@ -8,21 +8,17 @@ PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
-DOCKER_SERVICES_DIR="$HOME/docker-services"
-echo "Creating directory at $DOCKER_SERVICES_DIR..."
+#!/bin/bash
+
+# Using ~ to denote the home directory
+DOCKER_SERVICES_DIR="~/docker-services"
 mkdir -p "$DOCKER_SERVICES_DIR"
 
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
-echo "Checking for Docker Compose file at $DOCKER_COMPOSE_FILE..."
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-    echo "File not found, creating Docker Compose file..."
     echo "version: '3'" > "$DOCKER_COMPOSE_FILE"
     echo "services:" >> "$DOCKER_COMPOSE_FILE"
-    echo "Docker Compose file created."
-else
-    echo "Docker Compose file already exists."
 fi
-
 
 # Function to check and prompt for credentials
 check_and_prompt_for_credential() {
