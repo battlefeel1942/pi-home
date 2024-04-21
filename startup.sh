@@ -123,7 +123,7 @@ check_and_run_service "pihole" "pihole" "pihole/pihole:latest" \
 "TZ=Pacific/Auckland,WEBPASSWORD=" \
 "./etc-pihole:/etc/pihole;./etc-dnsmasq.d:/etc/dnsmasq.d"
 
-check_and_run_service "openvpn" "openvpn" "lunderhage/openvpn" \
+check_and_run_service "openvpn" "openvpn" "mjenz/rpi-openvpn" \
 "1194:1194/udp;943:943" \
 "PUID=1000,PGID=1000" \
 "./openvpn-data/conf:/etc/openvpn"
