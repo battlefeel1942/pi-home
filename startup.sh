@@ -65,11 +65,11 @@ add_service_to_docker_compose() {
     container_name: $2
     image: $3
     ports:
-      $(echo "$4" | sed 's/;/\n      /g')
+      - "$(echo "$4" | sed 's/;/\n      - /g')"
     environment:
-      $(echo "$5" | sed 's/;/\n      /g')
+      - "$(echo "$5" | sed 's/;/\n      - /g')"
     volumes:
-      $(echo "$6" | sed 's/;/\n      /g')
+      - "$(echo "$6" | sed 's/;/\n      - /g')"
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
@@ -102,10 +102,10 @@ fi
 # Run your service setups and custom functions
 # Example: check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
-# Add services setups
-check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
-check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ:'Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
-check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID:1000;PGID:1000" "./openvpn-data/conf:/etc/openvpn"
+# Run your service setups with corrected format
+check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER='$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
+check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ='Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
+check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID=1000;PGID=1000" "./openvpn-data/conf:/etc/openvpn"
 check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
 check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
 check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
