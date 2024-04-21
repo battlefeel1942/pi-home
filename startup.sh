@@ -1,6 +1,7 @@
 #!/bin/bash
-rm -f "/home/pi/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
 
+# Initial cleanup
+rm -f "/home/pi/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
 
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
@@ -9,13 +10,12 @@ PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
-#!/bin/bash
-
-# Using ~ to denote the home directory
+# Docker services directory setup
 DOCKER_SERVICES_DIR="/home/pi/docker-services"
 mkdir -p "$DOCKER_SERVICES_DIR"
-
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
+
+# Create Docker Compose file if it does not exist
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
     echo "services:" >> "$DOCKER_COMPOSE_FILE"
 fi
@@ -51,7 +51,7 @@ send_pushbullet_notification() {
          --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
 }
 
-# Add Docker repository and install Docker
+# Install Docker
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg lsb-release
 sudo mkdir -p /etc/apt/keyrings
@@ -63,32 +63,28 @@ sudo docker run hello-world
 
 # Function to add services to Docker Compose
 add_service_to_docker_compose() {
-    if ! grep -q "  $1:" "$DOCKER_COMPOSE_FILE"; then  # Checking the start of a service block
-        echo "Adding $1 service to Docker Compose file."
-        echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
-        echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
-        echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
-        echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
-        IFS=';' read -ra PORTS <<< "$4"
-        for port in "${PORTS[@]}"; do
-            echo "      - $port" >> "$DOCKER_COMPOSE_FILE"
-        done
-        echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
-        IFS=',' read -ra ENV_VARS <<< "$5"
-        for env in "${ENV_VARS[@]}"; do
-            echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
-        done
-        echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
-        IFS=';' read -ra VOLUMES <<< "$6"
-        for volume in "${VOLUMES[@]}"; do
-            echo "      - $volume" >> "$DOCKER_COMPOSE_FILE"
-        done
-        echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
-        echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
-        echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
-    else
-        echo "$1 service already exists in Docker Compose file."
-    fi
+    echo "Adding $1 service to Docker Compose file."
+    echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
+    echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
+    echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
+    echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra PORTS <<< "$4"
+    for port in "${PORTS[@]}"; do
+        echo "      - $port" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=',' read -ra ENV_VARS <<< "$5"
+    for env in "${ENV_VARS[@]}"; do
+        echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra VOLUMES <<< "$6"
+    for volume in "${VOLUMES[@]}"; do
+        echo "      - $volume" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
+    echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
+    echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
 }
 
 # Enhanced function to check and run services and send notifications
