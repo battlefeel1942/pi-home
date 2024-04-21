@@ -62,34 +62,34 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo docker run hello-world
 
-# Function to properly format Docker Compose service configurations
 add_service_to_docker_compose() {
-  if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
-    echo "Adding $1 service to Docker Compose file."
-    echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
-    echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
-    echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
-    echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=';' read -ra PORTS <<< "$4"
-    for port in "${PORTS[@]}"; do
-        echo "      - \"$port\"" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=',' read -ra ENV_VARS <<< "$5"
-    for env in "${ENV_VARS[@]}"; do
-        echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=';' read -ra VOLUMES <<< "$6"
-    for volume in "${VOLUMES[@]}"; do
-        echo "      - \"$volume\"" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
-    echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
-    echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
-  fi
+    if ! grep -q "  $1:" "$DOCKER_COMPOSE_FILE"; then  # Checking the start of a service block
+        echo "Adding $1 service to Docker Compose file."
+        echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
+        echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
+        echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
+        echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
+        IFS=';' read -ra PORTS <<< "$4"
+        for port in "${PORTS[@]}"; do
+            echo "      - $port" >> "$DOCKER_COMPOSE_FILE"
+        done
+        echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
+        IFS=',' read -ra ENV_VARS <<< "$5"
+        for env in "${ENV_VARS[@]}"; do
+            echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
+        done
+        echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
+        IFS=';' read -ra VOLUMES <<< "$6"
+        for volume in "${VOLUMES[@]}"; do
+            echo "      - $volume" >> "$DOCKER_COMPOSE_FILE"
+        done
+        echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
+        echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
+        echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
+    else
+        echo "$1 service already exists in Docker Compose file."
+    fi
 }
-
 
 # Enhanced function to check and run services and send notifications
 check_and_run_service() {
@@ -114,49 +114,20 @@ fi
 
 
 check_and_run_service "samba" "samba" "dperson/samba" \
-"[\"139:139\", \"445:445\"]" \
+"139:139;445:445" \
 "USER=${USERNAME},PASSWORD=${PASSWORD},USER_ID=${USER_ID},GROUP_ID=${GROUP_ID},SHARE_NAME=${SHARE_NAME}" \
 "${SHARE_DIR}:/share:rw"
 
 check_and_run_service "pihole" "pihole" "pihole/pihole:latest" \
-"[\"53:53\", \"53:53/udp\", \"67:67/udp\", \"80:80\", \"443:443\"]" \
+"53:53;53:53/udp;67:67/udp;80:80;443:443" \
 "TZ=Pacific/Auckland,WEBPASSWORD=" \
-"[\"./etc-pihole:/etc/pihole\", \"./etc-dnsmasq.d:/etc/dnsmasq.d\"]"
+"./etc-pihole:/etc/pihole;./etc-dnsmasq.d:/etc/dnsmasq.d"
 
 check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" \
-"[\"1194:1194/udp\", \"943:943\"]" \
+"1194:1194/udp;943:943" \
 "PUID=1000,PGID=1000" \
-"[\"./openvpn-data/conf:/etc/openvpn\"]"
+"./openvpn-data/conf:/etc/openvpn"
 
-check_and_run_service "plex" "plex" "plexinc/pms-docker" \
-"[\"32400:32400\"]" \
-"" \
-"[\"./plex-config:/config\", \"./plex-data:/data\"]"
-
-check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" \
-"[\"64738:64738\", \"64738:64738/udp\"]" \
-"" \
-"[\"./mumble-data:/data\"]"
-
-check_and_run_service "deluge" "deluge" "linuxserver/deluge" \
-"[\"8112:8112\", \"58846:58846\", \"58946:58946/udp\"]" \
-"" \
-"[\"./deluge-config:/config\"]"
-
-check_and_run_service "xteve" "xteve" "tellytv/xteve" \
-"[\"34400:34400\"]" \
-"" \
-"[\"./xteve-config:/root/.xteve\"]"
-
-check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" \
-"[\"8123:8123\"]" \
-"" \
-"[\"./homeassistant-config:/config\"]"
-
-check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" \
-"[\"6901:6901\"]" \
-"" \
-"[]"  # No volumes required, provide an empty list if needed
 
 # Deactivate commands and cleanup
 echo "All services are checked and notifications are sent."
