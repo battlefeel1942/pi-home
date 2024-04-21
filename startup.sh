@@ -123,10 +123,41 @@ check_and_run_service "pihole" "pihole" "pihole/pihole:latest" \
 "TZ=Pacific/Auckland,WEBPASSWORD=" \
 "./etc-pihole:/etc/pihole;./etc-dnsmasq.d:/etc/dnsmasq.d"
 
-check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" \
+check_and_run_service "openvpn" "openvpn" "giggio/openvpn-arm" \
 "1194:1194/udp;943:943" \
 "PUID=1000,PGID=1000" \
 "./openvpn-data/conf:/etc/openvpn"
+
+
+check_and_run_service "plex" "plex" "plexinc/pms-docker" \
+"32400:32400" \
+"" \
+"./plex-config:/config;./plex-data:/data"
+
+check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" \
+"64738:64738;64738:64738/udp" \
+"" \
+"./mumble-data:/data"
+
+check_and_run_service "deluge" "deluge" "linuxserver/deluge" \
+"8112:8112;58846:58846;58946:58946/udp" \
+"" \
+"./deluge-config:/config"
+
+check_and_run_service "xteve" "xteve" "tellytv/xteve" \
+"34400:34400" \
+"" \
+"./xteve-config:/root/.xteve"
+
+check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" \
+"8123:8123" \
+"" \
+"./homeassistant-config:/config"
+
+check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" \
+"6901:6901" \
+"" \
+""  # No volumes required, provide an empty string if needed
 
 
 # Deactivate commands and cleanup
