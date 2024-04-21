@@ -1,6 +1,7 @@
 #!/bin/bash
 rm -f "/home/pi/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
 
+
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
 mkdir -p "$CONFIG_DIR"
