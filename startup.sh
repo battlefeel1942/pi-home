@@ -77,12 +77,13 @@ EOF
   fi
 }
 
+
 # Enhanced function to check and run services and send notifications
 check_and_run_service() {
     if ! docker ps | grep -q $1; then
         add_service_to_docker_compose "$@"
         cd "$DOCKER_SERVICES_DIR" || exit
-        docker-compose up -d
+        docker compose up -d   # Note the change here from docker-compose to docker compose
         send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted"
     fi
 }
