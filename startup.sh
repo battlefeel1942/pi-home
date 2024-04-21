@@ -1,7 +1,6 @@
 #!/bin/bash
-
-# Removing the existing Docker Compose file and notifying about deletion
 rm -f "/home/pi/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
+
 
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
@@ -10,13 +9,16 @@ PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
-# Creating a directory for Docker services
+#!/bin/bash
+
+# Using ~ to denote the home directory
 DOCKER_SERVICES_DIR="/home/pi/docker-services"
 mkdir -p "$DOCKER_SERVICES_DIR"
 
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
-# Ensure the Docker Compose file starts with a 'services' root element
-echo "services:" >> "$DOCKER_COMPOSE_FILE"
+if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+    echo "services:" >> "$DOCKER_COMPOSE_FILE"
+fi
 
 # Function to check and prompt for credentials
 check_and_prompt_for_credential() {
@@ -49,7 +51,7 @@ send_pushbullet_notification() {
          --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
 }
 
-# Add Docker repository and install Docker components
+# Add Docker repository and install Docker
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg lsb-release
 sudo mkdir -p /etc/apt/keyrings
