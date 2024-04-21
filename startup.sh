@@ -17,7 +17,7 @@ mkdir -p "$DOCKER_SERVICES_DIR"
 
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-    echo "version: '3'" > "$DOCKER_COMPOSE_FILE"
+    echo "version: '3.7'" > "$DOCKER_COMPOSE_FILE"
     echo "services:" >> "$DOCKER_COMPOSE_FILE"
 fi
 
@@ -62,6 +62,7 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo docker run hello-world
 
+# Function to add services to Docker Compose
 add_service_to_docker_compose() {
     if ! grep -q "  $1:" "$DOCKER_COMPOSE_FILE"; then  # Checking the start of a service block
         echo "Adding $1 service to Docker Compose file."
@@ -96,7 +97,7 @@ check_and_run_service() {
     if ! docker ps | grep -q $1; then
         add_service_to_docker_compose "$@"
         cd "$DOCKER_SERVICES_DIR" || exit
-        docker compose up -d   # Note the change here from docker-compose to docker compose
+        docker compose up -d
         send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted"
     fi
 }
@@ -112,7 +113,7 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     chmod 777 "$SHARE_DIR"
 fi
 
-
+# Check and run predefined services
 check_and_run_service "samba" "samba" "dperson/samba" \
 "139:139;445:445" \
 "USER=${USERNAME},PASSWORD=${PASSWORD},USER_ID=${USER_ID},GROUP_ID=${GROUP_ID},SHARE_NAME=${SHARE_NAME}" \
@@ -128,6 +129,4 @@ check_and_run_service "openvpn" "openvpn" "giggio/openvpn" \
 "PUID=1000,PGID=1000" \
 "./openvpn-data/conf:/etc/openvpn"
 
-
-# Deactivate commands and cleanup
 echo "All services are checked and notifications are sent."
