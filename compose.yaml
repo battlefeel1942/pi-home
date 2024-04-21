@@ -1,18 +1,6 @@
-services:
-  duckdns:
-    image: linuxserver/duckdns:latest
-    container_name: duckdns
-    environment:
-      - PUID=1000 #optional
-      - PGID=1000 #optional
-      - TZ=Pacific/Auckland
-      - SUBDOMAINS=
-      - TOKEN=
-      #- LOG_FILE=true #optional
-    volumes:
-      - /home/pi/docker/data/duckdns/config:/config #optional
-    restart: unless-stopped
+version: '3.7'
 
+services:
   homeassistant:
     container_name: homeassistant
     image: homeassistant/home-assistant:stable
@@ -22,7 +10,6 @@ services:
     restart: unless-stopped
     privileged: true
     network_mode: host
-
 
   wireguard:
     image: linuxserver/wireguard
@@ -38,7 +25,7 @@ services:
       - SERVERPORT=51820 #optional
       - PEERS=10 #optional
       - PEERDNS=auto #optional
-      - INTERNAL_SUBNET=10.13.13.0 #optional
+      - INTERNAL_SUBNET=10.13.13.0/24 # Ensure correct CIDR format
       - ALLOWEDIPS=0.0.0.0/0 #optional
       - LOG_CONFS=true #optional
     volumes:
@@ -70,7 +57,7 @@ services:
       - "443:443/tcp"
     environment:
       TZ: 'Pacific/Auckland'
-      WEBPASSWORD: ''
+      WEBPASSWORD: 'set_a_strong_password_here'  # Set a strong password
     volumes:
       - '/mnt/Ale/PiHole/etc-pihole:/etc/pihole/'
       - '/mnt/Ale/PiHole/dnsmasq.d:/etc/dnsmasq.d/'
@@ -81,7 +68,6 @@ services:
     networks:
       containers:
         ipv4_address: 172.20.0.7
-
 
 networks:
   containers:
