@@ -58,24 +58,32 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo docker run hello-world
 
-# Function to properly format Docker Compose service configurations
+# Function to add services to Docker Compose
 add_service_to_docker_compose() {
   if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
     echo "Adding $1 service to Docker Compose file."
-    cat <<EOF >> "$DOCKER_COMPOSE_FILE"
-  $1:
-    container_name: $2
-    image: $3
-    ports:
-      - "$4"
-    environment:
-      - $5
-    volumes:
-      - $6
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
-EOF
+    # Using ">>" to append to the file
+    echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
+    echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
+    echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
+    echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra ADDR <<< "$4"
+    for port in "${ADDR[@]}"; do
+        echo "      - \"$port\"" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=',' read -ra ADDR <<< "$5"
+    for env in "${ADDR[@]}"; do
+        echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra ADDR <<< "$6"
+    for volume in "${ADDR[@]}"; do
+        echo "      - \"$volume\"" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
+    echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
+    echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
   fi
 }
 
