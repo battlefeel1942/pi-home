@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -f "$HOME/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
+rm -f "$~/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
 
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
