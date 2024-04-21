@@ -1,5 +1,5 @@
 #!/bin/bash
-rm -f "$~/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
+rm -f "/home/pi/docker-services/docker-compose.yml" && echo "Docker Compose file deleted."
 
 # Define directories and file paths for secure storage
 CONFIG_DIR="$HOME/.config/credentials"
@@ -11,7 +11,7 @@ SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 #!/bin/bash
 
 # Using ~ to denote the home directory
-DOCKER_SERVICES_DIR="~/docker-services"
+DOCKER_SERVICES_DIR="/home/pi/docker-services"
 mkdir -p "$DOCKER_SERVICES_DIR"
 
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
