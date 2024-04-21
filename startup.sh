@@ -8,14 +8,21 @@ PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
-# Ensure the docker-services directory exists and create docker-compose.yml if it doesn't
 DOCKER_SERVICES_DIR="$HOME/docker-services"
+echo "Creating directory at $DOCKER_SERVICES_DIR..."
 mkdir -p "$DOCKER_SERVICES_DIR"
+
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
+echo "Checking for Docker Compose file at $DOCKER_COMPOSE_FILE..."
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+    echo "File not found, creating Docker Compose file..."
     echo "version: '3'" > "$DOCKER_COMPOSE_FILE"
     echo "services:" >> "$DOCKER_COMPOSE_FILE"
+    echo "Docker Compose file created."
+else
+    echo "Docker Compose file already exists."
 fi
+
 
 # Function to check and prompt for credentials
 check_and_prompt_for_credential() {
@@ -58,32 +65,24 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo docker run hello-world
 
-# Function to add services to Docker Compose
+# Function to properly format Docker Compose service configurations
 add_service_to_docker_compose() {
   if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
     echo "Adding $1 service to Docker Compose file."
-    # Using ">>" to append to the file
-    echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
-    echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
-    echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
-    echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=';' read -ra ADDR <<< "$4"
-    for port in "${ADDR[@]}"; do
-        echo "      - \"$port\"" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=',' read -ra ADDR <<< "$5"
-    for env in "${ADDR[@]}"; do
-        echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
-    IFS=';' read -ra ADDR <<< "$6"
-    for volume in "${ADDR[@]}"; do
-        echo "      - \"$volume\"" >> "$DOCKER_COMPOSE_FILE"
-    done
-    echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
-    echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
-    echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
+    cat <<EOF >> "$DOCKER_COMPOSE_FILE"
+  $1:
+    container_name: $2
+    image: $3
+    ports:
+      - "$4"
+    environment:
+      - $5
+    volumes:
+      - $6
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+EOF
   fi
 }
 
@@ -107,7 +106,6 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     mkdir -p "$SHARE_DIR"
     chmod 777 "$SHARE_DIR"
 fi
-
 
 
 check_and_run_service "samba" "samba" "dperson/samba" \
