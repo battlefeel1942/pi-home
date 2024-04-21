@@ -58,26 +58,26 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo docker run hello-world
 
-# Function to update docker-compose.yml with a new service
+# Function to properly format Docker Compose service configurations
 add_service_to_docker_compose() {
   if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
+    echo "Adding $1 service to Docker Compose file."
     cat <<EOF >> "$DOCKER_COMPOSE_FILE"
   $1:
     container_name: $2
     image: $3
     ports:
-      - "$(echo "$4" | sed 's/;/\n      - /g')"
+      - "$4"
     environment:
-      - "$(echo "$5" | sed 's/;/\n      - /g')"
+      - $5
     volumes:
-      - "$(echo "$6" | sed 's/;/\n      - /g')"
+      - $6
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
 EOF
   fi
 }
-
 
 # Enhanced function to check and run services and send notifications
 check_and_run_service() {
@@ -100,19 +100,51 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     chmod 777 "$SHARE_DIR"
 fi
 
-# Run your service setups and custom functions
-# Example: check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
-# Run your service setups with corrected format
-check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER='$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
-check_and_run_service "pihole" "pihole" "pihole/pihole:latest" "53:53/tcp;53:53/udp;67:67/udp;80:80/tcp;443:443/tcp" "TZ='Pacific/Auckland';WEBPASSWORD=''" "./etc-pihole/:/etc/pihole/;./etc-dnsmasq.d/:/etc/dnsmasq.d/"
-check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" "1194:1194/udp;943:943/tcp" "PUID=1000;PGID=1000" "./openvpn-data/conf:/etc/openvpn"
-check_and_run_service "plex" "plex" "plexinc/pms-docker" "32400:32400/tcp" "" "./plex-config:/config;./plex-data:/data"
-check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" "64738:64738/tcp;64738:64738/udp" "" "./mumble-data:/data"
-check_and_run_service "deluge" "deluge" "linuxserver/deluge" "8112:8112/tcp;58846:58846/tcp;58946:58946/udp" "" "./deluge-config:/config"
-check_and_run_service "xteve" "xteve" "tellytv/xteve" "34400:34400/tcp" "" "./xteve-config:/root/.xteve"
-check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" "8123:8123/tcp" "" "./homeassistant-config:/config"
-check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" "6901:6901/tcp" "" ""
+check_and_run_service "samba" "samba" "dperson/samba" \
+"[\"139:139\", \"445:445\"]" \
+"USER=${USERNAME},PASSWORD=${PASSWORD},USER_ID=${USER_ID},GROUP_ID=${GROUP_ID},SHARE_NAME=${SHARE_NAME}" \
+"${SHARE_DIR}:/share:rw"
+
+check_and_run_service "pihole" "pihole" "pihole/pihole:latest" \
+"[\"53:53\", \"53:53/udp\", \"67:67/udp\", \"80:80\", \"443:443\"]" \
+"TZ=Pacific/Auckland,WEBPASSWORD=" \
+"[\"./etc-pihole:/etc/pihole\", \"./etc-dnsmasq.d:/etc/dnsmasq.d\"]"
+
+check_and_run_service "openvpn" "openvpn" "kylemanna/openvpn" \
+"[\"1194:1194/udp\", \"943:943\"]" \
+"PUID=1000,PGID=1000" \
+"[\"./openvpn-data/conf:/etc/openvpn\"]"
+
+check_and_run_service "plex" "plex" "plexinc/pms-docker" \
+"[\"32400:32400\"]" \
+"" \
+"[\"./plex-config:/config\", \"./plex-data:/data\"]"
+
+check_and_run_service "mumble" "mumble" "mumble-voip/mumble-server" \
+"[\"64738:64738\", \"64738:64738/udp\"]" \
+"" \
+"[\"./mumble-data:/data\"]"
+
+check_and_run_service "deluge" "deluge" "linuxserver/deluge" \
+"[\"8112:8112\", \"58846:58846\", \"58946:58946/udp\"]" \
+"" \
+"[\"./deluge-config:/config\"]"
+
+check_and_run_service "xteve" "xteve" "tellytv/xteve" \
+"[\"34400:34400\"]" \
+"" \
+"[\"./xteve-config:/root/.xteve\"]"
+
+check_and_run_service "homeassistant" "homeassistant" "homeassistant/home-assistant" \
+"[\"8123:8123\"]" \
+"" \
+"[\"./homeassistant-config:/config\"]"
+
+check_and_run_service "web-desktop" "web-desktop" "kasmweb/desktop" \
+"[\"6901:6901\"]" \
+"" \
+"[]"  # No volumes required, provide an empty list if needed
 
 # Deactivate commands and cleanup
 echo "All services are checked and notifications are sent."
