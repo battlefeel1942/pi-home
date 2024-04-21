@@ -7,6 +7,15 @@ PUSHBULLET_TOKEN_FILE="$CONFIG_DIR/pushbullet_token"
 SAMBA_USER_FILE="$CONFIG_DIR/samba_username"
 SAMBA_PASS_FILE="$CONFIG_DIR/samba_password"
 
+# Ensure the docker-services directory exists and create docker-compose.yml if it doesn't
+DOCKER_SERVICES_DIR="$HOME/docker-services"
+mkdir -p "$DOCKER_SERVICES_DIR"
+DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
+if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+    echo "version: '3'" > "$DOCKER_COMPOSE_FILE"
+    echo "services:" >> "$DOCKER_COMPOSE_FILE"
+fi
+
 # Function to check and prompt for credentials
 check_and_prompt_for_credential() {
     local credential_file=$1
@@ -38,26 +47,20 @@ send_pushbullet_notification() {
          --data-binary "{\"type\": \"note\", \"title\": \"$title\", \"body\": \"$message\"}"
 }
 
-# Set up the repository for Docker
+# Add Docker repository and install Docker
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg lsb-release
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Install Docker Engine
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# Verify Docker Installation
 sudo docker run hello-world
-
-
 
 # Function to update docker-compose.yml with a new service
 add_service_to_docker_compose() {
-  if ! grep -q "$1" ~/docker-services/docker-compose.yml; then
-    cat <<EOF >> ~/docker-services/docker-compose.yml
+  if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
+    cat <<EOF >> "$DOCKER_COMPOSE_FILE"
   $1:
     container_name: $2
     image: $3
@@ -78,7 +81,7 @@ EOF
 check_and_run_service() {
     if ! docker ps | grep -q $1; then
         add_service_to_docker_compose "$@"
-        cd ~/docker-services || exit
+        cd "$DOCKER_SERVICES_DIR" || exit
         docker-compose up -d
         send_pushbullet_notification "Docker Update" "$1 container has been updated or restarted"
     fi
@@ -94,6 +97,9 @@ if [ ! -d "$SHARE_DIR" ] || [ "$(stat -c '%a' "$SHARE_DIR")" != "777" ]; then
     mkdir -p "$SHARE_DIR"
     chmod 777 "$SHARE_DIR"
 fi
+
+# Run your service setups and custom functions
+# Example: check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
 
 # Add services setups
 check_and_run_service "samba" "samba" "dperson/samba" "139:139/tcp;445:445/tcp" "USER:'$USERNAME;$PASSWORD;$USER_ID;$GROUP_ID;$SHARE_NAME'" "${SHARE_DIR}:/share:rw"
