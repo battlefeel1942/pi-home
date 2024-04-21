@@ -66,22 +66,30 @@ sudo docker run hello-world
 add_service_to_docker_compose() {
   if ! grep -q "$1" "$DOCKER_COMPOSE_FILE"; then
     echo "Adding $1 service to Docker Compose file."
-    cat <<EOF >> "$DOCKER_COMPOSE_FILE"
-  $1:
-    container_name: $2
-    image: $3
-    ports:
-      - "$4"
-    environment:
-      - $5
-    volumes:
-      - $6
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
-EOF
+    echo "  $1:" >> "$DOCKER_COMPOSE_FILE"
+    echo "    container_name: $2" >> "$DOCKER_COMPOSE_FILE"
+    echo "    image: $3" >> "$DOCKER_COMPOSE_FILE"
+    echo "    ports:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra PORTS <<< "$4"
+    for port in "${PORTS[@]}"; do
+        echo "      - \"$port\"" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    environment:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=',' read -ra ENV_VARS <<< "$5"
+    for env in "${ENV_VARS[@]}"; do
+        echo "      - $env" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    volumes:" >> "$DOCKER_COMPOSE_FILE"
+    IFS=';' read -ra VOLUMES <<< "$6"
+    for volume in "${VOLUMES[@]}"; do
+        echo "      - \"$volume\"" >> "$DOCKER_COMPOSE_FILE"
+    done
+    echo "    cap_add:" >> "$DOCKER_COMPOSE_FILE"
+    echo "      - NET_ADMIN" >> "$DOCKER_COMPOSE_FILE"
+    echo "    restart: unless-stopped" >> "$DOCKER_COMPOSE_FILE"
   fi
 }
+
 
 # Enhanced function to check and run services and send notifications
 check_and_run_service() {
