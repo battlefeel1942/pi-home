@@ -17,7 +17,6 @@ mkdir -p "$DOCKER_SERVICES_DIR"
 
 DOCKER_COMPOSE_FILE="$DOCKER_SERVICES_DIR/docker-compose.yml"
 if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
-    echo "version: '3.7'" > "$DOCKER_COMPOSE_FILE"
     echo "services:" >> "$DOCKER_COMPOSE_FILE"
 fi
 
