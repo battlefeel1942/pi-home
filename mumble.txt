@@ -1,0 +1,12 @@
+services:
+    mumble-server:
+        image: mumble-voip/mumble-server:latest
+        container_name: mumble-server
+        hostname: mumble-server
+        restart: on-failure
+        ports:
+            - 64738:64738
+            - 64738:64738/udp
+        environment:
+            - SUPW=your_super_user_password
+            - SERVERPASSWORD=your_server_password
