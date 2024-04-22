@@ -10,4 +10,5 @@ services:
       - VERSION=docker
     volumes:
       - /docker/plex/library:/config
+      - /docker/deluge/downloads:/deluge
     restart: unless-stopped
