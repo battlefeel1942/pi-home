@@ -7,6 +7,3 @@ services:
         ports:
             - 64738:64738
             - 64738:64738/udp
-        environment:
-            - SUPW=your_super_user_password
-            - SERVERPASSWORD=your_server_password
