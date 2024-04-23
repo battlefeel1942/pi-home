@@ -11,4 +11,5 @@ services:
     volumes:
       - /docker/plex/library:/config
       - /docker/deluge/downloads:/deluge
+      - /media/pi/Expansion/dvd-rips:/expansion-dvd-rips     
     restart: unless-stopped
