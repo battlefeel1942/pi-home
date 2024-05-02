@@ -9,15 +9,24 @@ The provided script handles everything from updating the system, installing nece
 
 ## Running the Script
 1. **Download the script**: Transfer the script to your Raspberry Pi.
-2. **Set permissions**: Ensure the script is executable by running:
-   ```bash
-   chmod +x your_script_name.sh
+   ``bash
+      curl -o install_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/install_services.sh
    ```
-3. **Execute the script**: Start the installation by running:
    ```bash
-   ./your_script_name.sh
+      curl -o maintain_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/maintain_services.sh
    ```
-4. **Follow prompts**: Some services like Pi-hole and Plex may require you to follow on-screen prompts to complete the installation.
+3. **Set permissions**: Ensure the script is executable by running:
+   ``bash
+      chmod +x install_services.sh
+   ```
+   ```bash
+      chmod +x maintain_services.sh
+   ```
+4. **Execute the script**: Start the installation by running:
+   ```bash
+   sudo chmod +x install_services.sh
+   ```
+5. **Follow prompts**: Some services like Pi-hole and Plex may require you to follow on-screen prompts to complete the installation.
 
 ## Maintenance Script
 An additional maintenance script is included to automatically check and restart services if they are not running. This script also keeps your system up to date.
