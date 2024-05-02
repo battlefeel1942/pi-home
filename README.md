@@ -16,7 +16,7 @@ The provided script handles everything from updating the system, installing nece
       curl -o maintain_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/maintain_services.sh
    ```
 3. **Set permissions**: Ensure the script is executable by running:
-   ``bash
+   ```bash
       chmod +x install_services.sh
    ```
    ```bash
