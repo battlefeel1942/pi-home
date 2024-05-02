@@ -12,8 +12,8 @@ source bin/activate
 pip3 install wheel
 pip3 install homeassistant
 
-# Install ESPHome
-python3 -m pip install esphome
+# Install ESPHome in the same virtual environment
+pip3 install esphome
 
 # Create systemd service file for Home Assistant
 cat <<EOF | sudo tee /etc/systemd/system/homeassistant.service
@@ -24,7 +24,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=$USER
-ExecStart=$(pwd)/bin/hass -c "$(pwd)"
+ExecStart=$(pwd)/bin/hass -c $(pwd)
 
 [Install]
 WantedBy=multi-user.target
