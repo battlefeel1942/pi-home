@@ -10,17 +10,17 @@ The provided script handles everything from updating the system, installing nece
 ## Running the Script
 1. **Download the script**: Transfer the script to your Raspberry Pi.
    ```bash
-      curl -o install_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/install_services.sh
+   curl -o install_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/install_services.sh
    ```
    ```bash
-      curl -o maintain_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/maintain_services.sh
+   curl -o maintain_services.sh https://raw.githubusercontent.com/battlefeel1942/pi-home/main/maintain_services.sh
    ```
 3. **Set permissions**: Ensure the script is executable by running:
    ```bash
-      chmod +x install_services.sh
+   chmod +x install_services.sh
    ```
    ```bash
-      chmod +x maintain_services.sh
+   chmod +x maintain_services.sh
    ```
 4. **Execute the script**: Start the installation by running:
    ```bash
