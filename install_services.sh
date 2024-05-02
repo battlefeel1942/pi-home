@@ -37,8 +37,8 @@ curl -sSL https://install.pi-hole.net | bash
 
 # Plex Media Server installation
 sudo apt install apt-transport-https curl -y
-curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
-echo "deb https://downloads.plex.tv/repo/deb public main" | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+curl https://downloads.plex.tv/plex-keys/PlexSign.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/plex-archive-keyring.gpg > /dev/null
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main" | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
 sudo apt update
 sudo apt install plexmediaserver -y
 sudo systemctl enable plexmediaserver
