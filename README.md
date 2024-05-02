@@ -59,9 +59,12 @@ Create a script to ensure all services are running and the system is up to date:
 - Script content:
   ```bash
   #!/bin/bash
-  
+
   # Update the system
   sudo apt update && sudo apt upgrade -y
+
+  # Update Pi-hole
+  pihole -up
 
   # Check and restart Home Assistant if not running
   systemctl is-active --quiet homeassistant || systemctl restart homeassistant
@@ -80,6 +83,7 @@ Create a script to ensure all services are running and the system is up to date:
 
   # Check and restart Deluge Web UI if not running
   systemctl is-active --quiet deluge-web || systemctl restart deluge-web
+
   ```
 
 - Make the script executable and schedule it with Cron:
