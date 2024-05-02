@@ -12,6 +12,9 @@ source bin/activate
 pip3 install wheel
 pip3 install homeassistant
 
+# Install ESPHome
+python3 -m pip install esphome
+
 # Create systemd service file for Home Assistant
 cat <<EOF | sudo tee /etc/systemd/system/homeassistant.service
 [Unit]
