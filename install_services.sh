@@ -2,20 +2,21 @@
 
 # Installation of All Services
 
-# Home Assistant installation
+# Update system and install prerequisites
 sudo apt update && sudo apt upgrade -y
-sudo apt install python3-venv python3-pip -y
-mkdir ~/homeassistant
+sudo apt install python3-venv python3-pip apt-transport-https curl -y
+
+# Home Assistant installation
+mkdir -p ~/homeassistant
 cd ~/homeassistant
 python3 -m venv .
 source bin/activate
 pip3 install wheel
 pip3 install homeassistant
-
-# Install ESPHome in the same virtual environment
-pip3 install esphome
+deactivate
 
 # Create systemd service file for Home Assistant
+HA_PATH="/home/pi/homeassistant"
 cat <<EOF | sudo tee /etc/systemd/system/homeassistant.service
 [Unit]
 Description=Home Assistant
@@ -23,8 +24,10 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=$USER
-ExecStart=$(pwd)/bin/hass -c $(pwd)
+User=pi
+Environment="VIRTUAL_ENV=$HA_PATH"
+Environment="PATH=$HA_PATH/bin:\$PATH"
+ExecStart=$HA_PATH/bin/hass -c $HA_PATH
 
 [Install]
 WantedBy=multi-user.target
@@ -35,11 +38,19 @@ sudo systemctl daemon-reload
 sudo systemctl enable homeassistant
 sudo systemctl start homeassistant
 
+# ESPHome installation
+mkdir -p ~/esphome_venv
+cd ~/esphome_venv
+python3 -m venv .
+source bin/activate
+pip3 install esphome
+deactivate
+
 # Pi-hole installation
+# Consider security best practices as previously mentioned
 curl -sSL https://install.pi-hole.net | bash
 
 # Plex Media Server installation
-sudo apt install apt-transport-https curl -y
 curl https://downloads.plex.tv/plex-keys/PlexSign.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/plex-archive-keyring.gpg > /dev/null
 echo "deb [signed-by=/etc/apt/trusted.gpg.d/plex-archive-keyring.gpg] https://downloads.plex.tv/repo/deb public main" | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
 sudo apt update
@@ -62,7 +73,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=$USER
+User=pi
 ExecStart=/usr/bin/deluged -d
 
 [Install]
@@ -77,7 +88,7 @@ After=deluged.service
 
 [Service]
 Type=simple
-User=$USER
+User=pi
 ExecStart=/usr/bin/deluge-web
 
 [Install]
