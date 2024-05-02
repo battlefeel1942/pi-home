@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Part 1: Installation of All Services
+# Installation of All Services
 
 # Home Assistant installation
 sudo apt update && sudo apt upgrade -y
@@ -86,25 +86,8 @@ sudo systemctl daemon-reload
 sudo systemctl enable deluged deluge-web
 sudo systemctl start deluged deluge-web
 
-# Part 2: Script for Service Maintenance
-cat << EOF > ~/service_maintenance.sh
-#!/bin/bash
-
-# Update the system
-sudo apt update && sudo apt upgrade -y
-
-# Check and restart services if not running
-systemctl is-active --quiet homeassistant || systemctl restart homeassistant
-pihole status || pihole restartdns
-systemctl is-active --quiet plexmediaserver || systemctl restart plexmediaserver
-systemctl is-active --quiet mumble-server || systemctl restart mumble-server
-systemctl is-active --quiet deluged || systemctl restart deluged
-systemctl is-active --quiet deluge-web || systemctl restart deluge-web
-
-EOF
-
-chmod +x ~/service_maintenance.sh
-(crontab -l 2>/dev/null; echo "0 * * * * /home/pi/service_maintenance.sh >> /home/pi/service_maintenance.log 2>&1") | crontab -
-
 # Return to home directory
 cd ~
+
+# Setup cron job to run this script hourly
+(crontab -l 2>/dev/null; echo "0 * * * * /home/pi/maintain_services.sh >> /home/pi/service_maintenance.log 2>&1") | crontab -
