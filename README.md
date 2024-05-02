@@ -35,7 +35,7 @@ An additional maintenance script is included to automatically check and restart 
 Using these scripts, you can efficiently manage and maintain critical services on your Raspberry Pi, ensuring high availability and performance.
 
 
-#Configuration Notes
+# Configuration Notes
 
 ## Pi-hole Configuration for Different Subnet
 When Pi-hole is installed on a device that's on a different subnet from the clients (for instance, WireGuard clients on a different subnet), it's crucial to configure Pi-hole to respond correctly to DNS queries coming from those clients. Here's how you can set up Pi-hole to listen only on the `eth0` interface but still handle requests from another subnet:
