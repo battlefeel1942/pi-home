@@ -20,6 +20,7 @@ cd $HA_PATH
 python3 -m venv .
 source bin/activate
 pip3 install wheel
+pip3 install psutil
 pip3 install homeassistant
 deactivate
 EOF
