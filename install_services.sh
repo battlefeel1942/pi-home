@@ -19,8 +19,8 @@ sudo -u $USER bash <<EOF
 cd $HA_PATH
 python3 -m venv .
 source bin/activate
-pip3 install wheel
 pip3 install psutil
+pip3 install wheel
 pip3 install homeassistant
 deactivate
 EOF
@@ -77,6 +77,11 @@ sudo systemctl enable mumble-server
 sudo systemctl start mumble-server
 
 # Deluge with Web UI installation
+sudo adduser --disabled-password --system --home /var/lib/deluge --gecos "Deluge service" --group deluge
+sudo touch /var/log/deluged.log
+sudo touch /var/log/deluge-web.log
+sudo chown deluge:deluge /var/log/deluge*
+sudo apt update
 sudo apt install deluged deluge-web -y
 # Deluge daemon
 sudo tee /etc/systemd/system/deluged.service > /dev/null <<EOF
@@ -86,8 +91,12 @@ After=network-online.target
 
 [Service]
 Type=simple
-User=$USER
+User=deluge
+Group=deluge
+UMask=000
 ExecStart=/usr/bin/deluged -d
+Restart=on-failure
+TimeoutStopSec=300
 
 [Install]
 WantedBy=multi-user.target
@@ -97,12 +106,15 @@ EOF
 sudo tee /etc/systemd/system/deluge-web.service > /dev/null <<EOF
 [Unit]
 Description=Deluge Bittorrent Client Web Interface
-After=deluged.service
+After=network-online.target
 
 [Service]
 Type=simple
-User=$USER
-ExecStart=/usr/bin/deluge-web
+User=deluge
+Group=deluge
+UMask=027
+ExecStart=/usr/bin/deluge-web -d
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
