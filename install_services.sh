@@ -60,7 +60,6 @@ deactivate
 EOF
 
 # Pi-hole installation
-# Consider security best practices as previously mentioned
 curl -sSL https://install.pi-hole.net | bash
 
 # Plex Media Server installation
@@ -77,18 +76,7 @@ sudo systemctl enable mumble-server
 sudo systemctl start mumble-server
 
 # Deluge with Web UI installation
-DELUGE_PATH="/home/$USER/deluge_venv"
-sudo mkdir -p $DELUGE_PATH
-sudo chown $USER:$USER $DELUGE_PATH
-
-sudo -u $USER bash <<EOF
-cd $DELUGE_PATH
-python3 -m venv .
-source bin/activate
-pip3 install deluge-web deluged  # Install both deluge-web and deluged
-deactivate
-EOF
-
+sudo apt install deluged deluge-web -y
 # Deluge daemon
 sudo tee /etc/systemd/system/deluged.service > /dev/null <<EOF
 [Unit]
@@ -98,9 +86,7 @@ After=network-online.target
 [Service]
 Type=simple
 User=$USER
-Environment="VIRTUAL_ENV=$DELUGE_PATH"
-Environment="PATH=$DELUGE_PATH/bin:\$PATH"
-ExecStart=$DELUGE_PATH/bin/deluged -d
+ExecStart=/usr/bin/deluged -d
 
 [Install]
 WantedBy=multi-user.target
@@ -115,9 +101,7 @@ After=deluged.service
 [Service]
 Type=simple
 User=$USER
-Environment="VIRTUAL_ENV=$DELUGE_PATH"
-Environment="PATH=$DELUGE_PATH/bin:\$PATH"
-ExecStart=$DELUGE_PATH/bin/deluge-web -d
+ExecStart=/usr/bin/deluge-web
 
 [Install]
 WantedBy=multi-user.target
