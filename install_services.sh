@@ -16,7 +16,7 @@ pip3 install homeassistant
 deactivate
 
 # Create systemd service file for Home Assistant
-HA_PATH="/home/pi/homeassistant"
+HA_PATH="/root/homeassistant"
 cat <<EOF | sudo tee /etc/systemd/system/homeassistant.service
 [Unit]
 Description=Home Assistant
