@@ -77,7 +77,18 @@ sudo systemctl enable mumble-server
 sudo systemctl start mumble-server
 
 # Deluge with Web UI installation
-sudo apt install deluged deluge-web -y
+DELUGE_PATH="/home/$USER/deluge_venv"
+sudo mkdir -p $DELUGE_PATH
+sudo chown $USER:$USER $DELUGE_PATH
+
+sudo -u $USER bash <<EOF
+cd $DELUGE_PATH
+python3 -m venv .
+source bin/activate
+pip3 install deluge-web deluged  # Install both deluge-web and deluged
+deactivate
+EOF
+
 # Deluge daemon
 sudo tee /etc/systemd/system/deluged.service > /dev/null <<EOF
 [Unit]
@@ -87,7 +98,9 @@ After=network-online.target
 [Service]
 Type=simple
 User=$USER
-ExecStart=/usr/bin/deluged -d
+Environment="VIRTUAL_ENV=$DELUGE_PATH"
+Environment="PATH=$DELUGE_PATH/bin:\$PATH"
+ExecStart=$DELUGE_PATH/bin/deluged -d
 
 [Install]
 WantedBy=multi-user.target
@@ -102,7 +115,9 @@ After=deluged.service
 [Service]
 Type=simple
 User=$USER
-ExecStart=/usr/bin/deluge-web
+Environment="VIRTUAL_ENV=$DELUGE_PATH"
+Environment="PATH=$DELUGE_PATH/bin:\$PATH"
+ExecStart=$DELUGE_PATH/bin/deluge-web -d
 
 [Install]
 WantedBy=multi-user.target
