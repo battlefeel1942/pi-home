@@ -6,25 +6,33 @@
 sudo apt update && sudo apt upgrade -y
 sudo apt install python3-venv python3-pip apt-transport-https curl -y
 
-# Home Assistant installation
-mkdir -p ~/homeassistant
-cd ~/homeassistant
+# Set the username for installations
+USER=pi
+
+# Home Assistant installation in the user's home directory
+HA_PATH="/home/$USER/homeassistant"
+sudo mkdir -p $HA_PATH
+sudo chown $USER:$USER $HA_PATH
+
+# Run Home Assistant installation as specified user
+sudo -u $USER bash <<EOF
+cd $HA_PATH
 python3 -m venv .
 source bin/activate
 pip3 install wheel
 pip3 install homeassistant
 deactivate
+EOF
 
 # Create systemd service file for Home Assistant
-HA_PATH="/root/homeassistant"
-cat <<EOF | sudo tee /etc/systemd/system/homeassistant.service
+sudo tee /etc/systemd/system/homeassistant.service > /dev/null << EOF
 [Unit]
 Description=Home Assistant
 After=network-online.target
 
 [Service]
 Type=simple
-User=pi
+User=$USER
 Environment="VIRTUAL_ENV=$HA_PATH"
 Environment="PATH=$HA_PATH/bin:\$PATH"
 ExecStart=$HA_PATH/bin/hass -c $HA_PATH
@@ -39,12 +47,17 @@ sudo systemctl enable homeassistant
 sudo systemctl start homeassistant
 
 # ESPHome installation
-mkdir -p ~/esphome_venv
-cd ~/esphome_venv
+ESPHOME_PATH="/home/$USER/esphome_venv"
+sudo mkdir -p $ESPHOME_PATH
+sudo chown $USER:$USER $ESPHOME_PATH
+
+sudo -u $USER bash <<EOF
+cd $ESPHOME_PATH
 python3 -m venv .
 source bin/activate
 pip3 install esphome
 deactivate
+EOF
 
 # Pi-hole installation
 # Consider security best practices as previously mentioned
@@ -66,14 +79,14 @@ sudo systemctl start mumble-server
 # Deluge with Web UI installation
 sudo apt install deluged deluge-web -y
 # Deluge daemon
-cat <<EOF | sudo tee /etc/systemd/system/deluged.service
+sudo tee /etc/systemd/system/deluged.service > /dev/null <<EOF
 [Unit]
 Description=Deluge Bittorrent Client Daemon
 After=network-online.target
 
 [Service]
 Type=simple
-User=pi
+User=$USER
 ExecStart=/usr/bin/deluged -d
 
 [Install]
@@ -81,14 +94,14 @@ WantedBy=multi-user.target
 EOF
 
 # Deluge Web UI
-cat <<EOF | sudo tee /etc/systemd/system/deluge-web.service
+sudo tee /etc/systemd/system/deluge-web.service > /dev/null <<EOF
 [Unit]
 Description=Deluge Bittorrent Client Web Interface
 After=deluged.service
 
 [Service]
 Type=simple
-User=pi
+User=$USER
 ExecStart=/usr/bin/deluge-web
 
 [Install]
@@ -104,4 +117,4 @@ sudo systemctl start deluged deluge-web
 cd ~
 
 # Setup cron job to run this script hourly
-(crontab -l 2>/dev/null; echo "0 * * * * /home/pi/maintain_services.sh >> /home/pi/service_maintenance.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "0 * * * * /home/$USER/maintain_services.sh >> /home/$USER/service_maintenance.log 2>&1") | crontab -
