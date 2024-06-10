@@ -60,6 +60,26 @@ pip3 install esphome
 deactivate
 EOF
 
+# Create systemd service file for ESPHome
+sudo tee /etc/systemd/system/esphome.service > /dev/null << EOF
+[Unit]
+Description=ESPHome
+After=network-online.target
+
+[Service]
+Type=simple
+User=$USER
+ExecStart=$ESPHOME_PATH/bin/esphome dashboard /home/$USER/esphome/config
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start ESPHome
+sudo systemctl daemon-reload
+sudo systemctl enable esphome
+sudo systemctl start esphome
+
 # Pi-hole installation
 curl -sSL https://install.pi-hole.net | bash
 
@@ -83,6 +103,7 @@ sudo touch /var/log/deluge-web.log
 sudo chown deluge:deluge /var/log/deluge*
 sudo apt update
 sudo apt install deluged deluge-web -y
+
 # Deluge daemon
 sudo tee /etc/systemd/system/deluged.service > /dev/null <<EOF
 [Unit]
