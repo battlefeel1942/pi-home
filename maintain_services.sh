@@ -6,11 +6,8 @@
 sudo apt update && sudo apt upgrade -y
 
 # Update Pi-hole
-if command -v pihole &> /dev/null
-then
-    pihole -up
-    # Verify Pi-hole FTL update
-    pihole -v
+if [ -x /usr/local/bin/pihole ]; then
+    /usr/local/bin/pihole -up
 else
     echo "Pi-hole command not found. Skipping Pi-hole update."
 fi
@@ -30,6 +27,12 @@ if systemctl list-units --full -all | grep -Fq 'esphome.service'; then
     systemctl is-active --quiet esphome || systemctl restart esphome
 else
     echo "ESPHome service not found."
+fi
+
+if [ -x /usr/local/bin/pihole ]; then
+    /usr/local/bin/pihole status || /usr/local/bin/pihole restartdns
+else
+    echo "Pi-hole command not found. Skipping Pi-hole DNS restart."
 fi
 
 systemctl is-active --quiet plexmediaserver || systemctl restart plexmediaserver
